@@ -1,6 +1,6 @@
 # 🌓 Sealed-Bid Auction — Midnight Privacy-First dApp
 
-![Midnight CI/CD Pipeline](https://github.com/pramodsharda/midnight-sealed-bid-auction/actions/workflows/ci.yml/badge.svg)
+![Midnight CI/CD Pipeline](https://github.com/doughtassistance/Sealed-Bid-Auction/actions/workflows/ci.yml/badge.svg)
 ![Network: Midnight Preprod](https://img.shields.io/badge/Network-Midnight%20Preprod-6366f1)
 ![Compact: 0.18+](https://img.shields.io/badge/Compact-0.18%2B-f59e0b)
 ![License: MIT](https://img.shields.io/badge/License-MIT-34d399)
@@ -148,8 +148,8 @@ Midnight applications draw an explicit boundary between **Public Ledger State** 
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/pramodsharda/midnight-sealed-bid-auction.git
-cd midnight-sealed-bid-auction
+git clone https://github.com/doughtassistance/Sealed-Bid-Auction.git
+cd Sealed-Bid-Auction
 npm install
 ```
 
