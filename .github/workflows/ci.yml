@@ -1,0 +1,40 @@
+name: Midnight CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🔍 TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: 🧪 Run Automated Tests (10 Test Cases)
+        run: npm test
+
+      - name: 🏗️ Build Production Bundle
+        run: npm run build
+
+      - name: 🚀 Verify Artifacts
+        run: |
+          test -d dist
+          test -f dist/index.html
+          echo "Build completed successfully!"
