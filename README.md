@@ -19,6 +19,14 @@
 
 ---
 
+## 🎬 Demo Video & Live Walkthrough
+
+![Sealed-Bid Auction Live Demo Walkthrough](./media/demo.webp)
+
+> **Demo Walkthrough**: Demonstrates Lace wallet connection on Midnight Preprod, placing a private sealed bid evaluated inside client-side ZK-SNARK circuits without exposing the amount or identity, inspecting client-side private witnesses versus public on-chain observer proofs, and closing the auction to trigger selective disclosure of the winning amount.
+
+---
+
 ## 📋 Deployed Contract Addresses (Midnight Preprod)
 
 | Property | Value | Notes |
@@ -44,6 +52,8 @@ Traditional auctions on transparent blockchains (Ethereum, Solana) force all bid
 ---
 
 ## 🛡️ Privacy Model: Public vs Private Separation
+
+![Midnight Selective Disclosure Architecture](./media/architecture.png)
 
 Midnight applications draw an explicit boundary between **Public Ledger State** and **Private Local Witnesses**:
 
