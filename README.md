@@ -21,7 +21,7 @@
 
 ## 🎬 Demo Video & Live Walkthrough
 
-![Sealed-Bid Auction Live Demo Walkthrough](./media/demo.webp)
+![Sealed-Bid Auction Live Demo Walkthrough](./media/demo.gif)
 
 > **Demo Walkthrough**: Demonstrates Lace wallet connection on Midnight Preprod, placing a private sealed bid evaluated inside client-side ZK-SNARK circuits without exposing the amount or identity, inspecting client-side private witnesses versus public on-chain observer proofs, and closing the auction to trigger selective disclosure of the winning amount.
 
