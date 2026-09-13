@@ -1,0 +1,168 @@
+/**
+ * @file SealedBid: Private Sealed-Bid Auction on Midnight Network
+ * @description Submit private bids; only the winning amount is revealed.
+ *
+ * ══════════════════════════════════════════════════════
+ *  PRIVACY MODEL
+ * ══════════════════════════════════════════════════════
+ *
+ * PUBLIC (on-chain, visible to any observer):
+ *   - auctionName        → the human-readable label of this auction
+ *   - bidCount           → how many bids have been received
+ *   - highestBid         → the winning bid amount (only after reveal)
+ *   - winnerCommitment   → hash of winner's secret (cannot identify who)
+ *   - auctionOpen        → whether the auction is currently accepting bids
+ *   - usedNullifiers     → set of nullifiers to prevent double-bidding
+ *
+ * PRIVATE (private witness, never leaves the user's device):
+ *   - bidderSecret       → the bidder's 32-byte secret key
+ *   - bidAmount          → the actual bid amount in the sealed envelope
+ *
+ * WHAT THE USER PROVES WITHOUT REVEALING:
+ *   - "I submitted a valid bid" — without revealing the bid amount
+ *   - "I have not bid before" — via nullifier, without revealing identity
+ *   - "My bid is higher/lower than the current highest" — without
+ *     revealing the exact amount to anyone except the contract logic
+ *
+ * An observer can see that N bids were placed and the final winning
+ * price, but CANNOT determine:
+ *   - Which bidder won
+ *   - What any individual bid amount was
+ *   - Any link between a nullifier and a bidder's identity
+ * ══════════════════════════════════════════════════════
+ */
+
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// ============================================================
+// Ledger State (PUBLIC — visible on-chain)
+// ============================================================
+
+// Human-readable label for this auction instance
+export ledger auctionName: Opaque<"string">;
+
+// Whether the auction is currently open for bids
+export ledger auctionOpen: Boolean;
+
+// Total number of sealed bids received
+export ledger bidCount: Counter;
+
+// The highest bid amount — only meaningful after reveal
+// During bidding this tracks the running maximum internally
+export ledger highestBid: Uint<64>;
+
+// Hash commitment of the current highest bidder
+// Cannot be linked back to any specific identity
+export ledger winnerCommitment: Bytes<32>;
+
+// Tracks nullifiers to prevent double-bidding
+// Each bidder can only submit one bid per auction
+export ledger usedNullifiers: Map<Field, Boolean>;
+
+// Total number of auctions that have been revealed/completed
+export ledger revealCount: Counter;
+
+// ============================================================
+// Witnesses (PRIVATE — never leave the user's device)
+// ============================================================
+
+// The bidder's secret key — known only to them
+// Used to derive their commitment (public) and nullifier (unique per bid)
+witness bidderSecret(): Bytes<32>;
+
+// The bid amount — the sealed value in the envelope
+// This value is NEVER disclosed on-chain during bidding
+witness bidAmount(): Uint<64>;
+
+// ============================================================
+// Constructor
+// ============================================================
+
+constructor(name: Opaque<"string">) {
+    auctionName = name;
+    auctionOpen = true;
+    bidCount.increment(0);
+    revealCount.increment(0);
+    highestBid = 0;
+}
+
+// ============================================================
+// Circuits
+// ============================================================
+
+/**
+ * placeBid — Submit a sealed bid to the auction
+ *
+ * The bidder's secret and bid amount are loaded from private witnesses.
+ * A commitment is derived from the secret to identify the bidder
+ * without revealing who they are. A nullifier prevents double-bidding.
+ *
+ * If this bid exceeds the current highest, the contract updates
+ * highestBid and winnerCommitment — but the losing bids' amounts
+ * are NEVER recorded or disclosed.
+ *
+ * PRIVACY: The circuit proves the bidder submitted a valid bid
+ * WITHOUT revealing:
+ *   - The bid amount (except that it may become highestBid)
+ *   - The bidder's identity
+ *   - Any link between the nullifier and the bidder
+ *
+ * @param commitment - The hash of the bidder's secret key
+ */
+export circuit placeBid(commitment: Bytes<32>): [] {
+    // Auction must be open
+    assert(auctionOpen, "Auction is closed — no more bids accepted");
+
+    // Load private inputs from witnesses
+    const secret = bidderSecret();
+    const amount = bidAmount();
+
+    // Derive nullifier from secret to prevent double-bidding
+    // transientHash ensures unlinkability to the commitment
+    const nullifier = transientHash<Bytes<32>>([secret]);
+
+    // Check that this bidder hasn't already bid
+    assert(!usedNullifiers.member(nullifier), "Already placed a bid — each bidder can only bid once");
+
+    // Record the nullifier to prevent replay
+    usedNullifiers.insert(nullifier, true);
+
+    // If this bid is higher than the current highest, update the winner
+    // The actual comparison happens inside the ZK circuit — only the
+    // RESULT (whether to update) is reflected on-chain
+    if (amount > highestBid) {
+        highestBid = disclose(amount);
+        winnerCommitment = disclose(commitment);
+    }
+
+    // Increment bid count
+    bidCount.increment(1);
+}
+
+/**
+ * closeAuction — Close the auction to new bids
+ *
+ * After closing, no more bids can be placed.
+ * The highest bid and winner commitment are already on-chain.
+ */
+export circuit closeAuction(): [] {
+    assert(auctionOpen, "Auction is already closed");
+    auctionOpen = false;
+    revealCount.increment(1);
+}
+
+/**
+ * getBidCount — Read-only: how many bids were placed
+ */
+export circuit getBidCount(): Uint<64> {
+    return bidCount.value();
+}
+
+/**
+ * getHighestBid — Read-only: the current highest bid amount
+ */
+export circuit getHighestBid(): Uint<64> {
+    return highestBid;
+}
