@@ -21,9 +21,11 @@
 
 ## 🎬 Demo Video & Live Walkthrough
 
-![Sealed-Bid Auction Live Demo Walkthrough](./media/demo.gif)
+[![Sealed-Bid Auction Live Demo Walkthrough](./media/demo.gif)](./media/demo.mp4)
 
-> **Demo Walkthrough**: Demonstrates Lace wallet connection on Midnight Preprod, placing a private sealed bid evaluated inside client-side ZK-SNARK circuits without exposing the amount or identity, inspecting client-side private witnesses versus public on-chain observer proofs, and closing the auction to trigger selective disclosure of the winning amount.
+> 📹 **[Click here to play / download the Full 1080p HD MP4 Video](./media/demo.mp4)**
+>
+> **Interactive Walkthrough**: Demonstrates Lace wallet connection on Midnight Preprod, placing a private sealed bid evaluated inside client-side ZK-SNARK circuits without exposing the amount or identity, inspecting client-side private witnesses versus public on-chain observer proofs, and closing the auction to trigger selective disclosure of the winning amount.
 
 ---
 
